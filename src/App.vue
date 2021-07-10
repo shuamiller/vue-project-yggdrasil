@@ -190,9 +190,6 @@ export default {
       this.currentRoom = room;
       this.currentRoomName = room.name;
       this.currentRoomDescription = this.currentRoom.description;
-      // this.currentRoomDescription = this.highlightText(
-      //   this.currentRoom.description
-      // );
     },
     // Changes string to camelCase
     makeCamelCase(str) {
