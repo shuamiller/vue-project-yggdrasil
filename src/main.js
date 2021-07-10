@@ -1,8 +1,5 @@
-import { createApp } from 'vue'
+import { createApp } from "vue";
 
-import App from './App.vue';
-// import Console from "./components/Console.vue";
+import App from "./App.vue";
 
-// App.component('Console', Console)
-
-createApp(App).mount('#app')
+createApp(App).mount("#app");

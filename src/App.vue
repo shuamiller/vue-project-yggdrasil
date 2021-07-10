@@ -1,8 +1,12 @@
 <template>
-<div>
-  <h1><span class="header-span">p</span>roject<span class="header-span">Ygg</span>drasil</h1>
-  <p id="subtitle">A Textploration Game</p>
-</div>
+  <div>
+    <h1>
+      <span class="header-span">p</span>roject<span class="header-span"
+        >Ygg</span
+      >drasil
+    </h1>
+    <p id="subtitle">A Textploration Game</p>
+  </div>
   <div id="console">
     <div id="game-info">
       <div v-if="!gameStarted" id="welcome-div">
@@ -42,14 +46,19 @@
         </div>
       </div>
       <div v-if="gameStarted" id="description-div">
-        <p id="room-description-text" class="game-text">
-          {{ currentRoomDescription }}
-        </p>
+        <p
+          v-html="highlightText(currentRoomDescription)"
+          id="room-description-text"
+          class="game-text"
+        ></p>
       </div>
       <div v-if="gameStarted" id="action-response-div">
-        <p v-for="(message, index) in messages" :key="index" class="game-text">
-          {{ message }}
-        </p>
+        <p
+          v-html="highlightText(message)"
+          v-for="(message, index) in messages"
+          :key="index"
+          class="game-text"
+        ></p>
       </div>
     </div>
     <div id="player-interface">
@@ -79,10 +88,8 @@
 </template>
 
 <script>
-// import Console from './components/Console.vue'
-
 export default {
-  name: 'App',
+  name: "App",
   data() {
     return {
       currentRoom: "",
@@ -96,6 +103,10 @@ export default {
       },
       playerInput: "",
       placeholder: "What will you do?",
+      characterQueries: ["portal"],
+      objectQueries: ["doorway", "dark glass"],
+      locationQueries: ["left", "opening", "sand"],
+      directionQueries: ["North", "West", "South", "East"],
       worldTree: {
         rooms: {
           entryPoint: {
@@ -116,7 +127,7 @@ export default {
                 description: `A circular portal of dark glass set into the wall. It is about the size of your head. As you look at it, the glass like surface begins to ripple suddenly. You hear a voice come from the portal. As the voice speaks, the ripple grows.\n\n"Oh, another Convert. It's been some time. I didn't know there would be more of you, but I know not what happens beyond the deep. What is your name, Convert?"`,
                 isTakeable: false,
                 examinationFunction() {
-                  this.checkInput = function () {
+                  this.checkInput = function() {
                     this.playerCharacter.name = this.playerInput;
                     this.messages.push(
                       `"It's good to meet you, ${this.playerCharacter.name}! I'm Greeter,Dif. Of course you'll have heard of me from before your Conver- Oh! You appear to be missing your PED. How unusual...\n\nSomething's wrong. I'm sorry about the inconvenince. NOrmally, I'd send you to the Council, but as they've dispersed, I'll have to take care of this somehow. Meet me in the Hall,Annals across the city; We can try to figure this out there.\n\nI'm sorry the circumstances are so strange, but nonetheless... Welcome to Yggdrasil."\n\nThe doorway before you to the North splits down the middle, and the two halves recede into the walls creating an opening.`
@@ -141,8 +152,16 @@ export default {
   },
   watch: {
     messages: {
-      handler(val) {
-        console.log(val);
+      handler() {
+        console.log(this.messages[this.messages.length - 1]);
+        if (
+          this.messages[this.messages.length - 1][
+            this.messages[this.messages.length - 1].length - 1
+          ] != "/"
+        ) {
+          console.log("yes");
+          this.messages[this.messages.length - 1] += "\n//";
+        }
         if (this.messages.length > 50) {
           this.messages.shift();
         }
@@ -171,14 +190,55 @@ export default {
       this.currentRoom = room;
       this.currentRoomName = room.name;
       this.currentRoomDescription = this.currentRoom.description;
+      // this.currentRoomDescription = this.highlightText(
+      //   this.currentRoom.description
+      // );
     },
     // Changes string to camelCase
     makeCamelCase(str) {
       return str
-        .replace(/(?:^\w|[A-Z]|\b\w)/g, function (word, index) {
+        .replace(/(?:^\w|[A-Z]|\b\w)/g, function(word, index) {
           return index == 0 ? word.toLowerCase() : word.toUpperCase();
         })
         .replace(/\s+/g, "");
+    },
+
+    // Highlights Text
+    highlightText(text) {
+      let replacedText = text;
+      for (let i = 0; i < this.characterQueries.length; i++) {
+        replacedText = replacedText.replace(
+          new RegExp(this.characterQueries[i], "gi"),
+          (match) => {
+            return '<span class="character-text">' + match + `</span>`;
+          }
+        );
+      }
+      for (let i = 0; i < this.objectQueries.length; i++) {
+        replacedText = replacedText.replace(
+          new RegExp(this.objectQueries[i], "gi"),
+          (match) => {
+            return '<span class="object-text">' + match + `</span>`;
+          }
+        );
+      }
+      for (let i = 0; i < this.locationQueries.length; i++) {
+        replacedText = replacedText.replace(
+          new RegExp(this.locationQueries[i], "gi"),
+          (match) => {
+            return '<span class="location-text">' + match + `</span>`;
+          }
+        );
+      }
+      for (let i = 0; i < this.directionQueries.length; i++) {
+        replacedText = replacedText.replace(
+          new RegExp(this.directionQueries[i], "gi"),
+          (match) => {
+            return '<span class="direction-text">' + match + `</span>`;
+          }
+        );
+      }
+      return replacedText;
     },
 
     /////////////// Parsing Functions ///////////////
@@ -193,6 +253,7 @@ export default {
       let camelStr = this.makeCamelCase(trimmedStr);
       return camelStr;
     },
+
     // Gets aspect from input when the player attempts to speak to a character
     getSpeakerAspect(array) {
       let str = "";
@@ -203,6 +264,7 @@ export default {
       let camelStr = this.makeCamelCase(trimmedStr);
       return camelStr;
     },
+
     // Gets aspect that the player is attempting to give to someone
     getGivenAspect(array) {
       let toIndex = array.indexOf("to");
@@ -214,6 +276,7 @@ export default {
       let camelStr = this.makeCamelCase(trimmedStr);
       return camelStr;
     },
+
     // Gets aspect that the player is attempting to give something to
     getReceiver(array) {
       let toIndex = array.indexOf("to");
@@ -225,6 +288,7 @@ export default {
       let camelStr = this.makeCamelCase(trimmedStr);
       return camelStr;
     },
+
     // Gets first of two aspects
     getFirstAspect(array) {
       let withIndex = array.indexOf("with");
@@ -236,6 +300,7 @@ export default {
       let camelStr = this.makeCamelCase(trimmedStr);
       return camelStr;
     },
+
     // Gets second of two aspects
     getSecondAspect(array) {
       let withIndex = array.indexOf("with");
@@ -247,17 +312,19 @@ export default {
       let camelStr = this.makeCamelCase(trimmedStr);
       return camelStr;
     },
+
     // Function that initiates the parser and sets the input field to blank
     checkInput() {
       this.determineAction();
       this.playerInput = "";
-      console.log(this.messages.length);
     },
+
     // Changes room to new room
     enterRoom(aspect) {
       let newRoom = this.currentRoom.directions[aspect].room;
       this.setRoomLocation(this.worldTree.rooms[newRoom]);
     },
+
     // Allows Player to attempt to walk in a direction
     walkDirection(aspect) {
       if (
@@ -272,6 +339,7 @@ export default {
         this.currentRoom.walkFunction();
       }
     },
+
     // Allows Player to examine an object or character, displaying thier description
     examineAspect(aspect) {
       if (this.currentRoom.objects[aspect]) {
@@ -286,6 +354,7 @@ export default {
         }
       }
     },
+
     // Allows Player to attempt to take an Object or Player
     takeAspect(aspect) {
       if (aspect in this.currentRoom.objects) {
@@ -326,6 +395,7 @@ export default {
         }
       }
     },
+
     openAspect(aspect) {
       if (aspect in this.currentRoom.objects) {
         this.messages.push(this.currentRoom.objects[aspect].openText);
@@ -339,6 +409,7 @@ export default {
         }
       }
     },
+
     pushAspect(aspect) {
       if (aspect in this.currentRoom.objects) {
         this.messages.push(this.currentRoom.objects[aspect].pushText);
@@ -352,6 +423,7 @@ export default {
         }
       }
     },
+
     pullAspect(aspect) {
       if (aspect in this.currentRoom.objects) {
         this.messages.push(this.currentRoom.objects[aspect].pullText);
@@ -365,6 +437,7 @@ export default {
         }
       }
     },
+
     talkToAspect(aspect) {
       if (aspect in this.currentRoom.objects) {
         if (this.currentRoom.objects[aspect].dialogue.length > 1) {
@@ -394,6 +467,7 @@ export default {
         }
       }
     },
+
     giveFunction(aspect, receiver) {
       if (!this.playerCharacter.inventory[aspect]) {
         this.messages.push(`You don't have ${aspect} with you.`);
@@ -411,11 +485,13 @@ export default {
         }
       }
     },
+
     useAspect(firstAspect, secondAspect) {
       // Refactor code from script.js
       firstAspect;
       secondAspect;
     },
+
     checkInventory() {
       let inventoryList = `You are holding:`;
       for (const item in this.playerCharacter.inventory) {
@@ -423,12 +499,12 @@ export default {
       }
       this.messages.push(inventoryList);
     },
+
     determineAction() {
       let inputArray = this.playerInput.toLowerCase().split(" ");
       let aspect = "";
       if (inputArray[0] === "walk" || inputArray[0] === "go") {
         aspect = inputArray[1];
-        console.log(aspect);
         this.walkDirection(aspect);
       } else if (inputArray[0] === "examine") {
         aspect = this.getGeneralAspect(inputArray);
@@ -467,6 +543,7 @@ export default {
         this.checkInventory();
       }
     },
+
     scrollToEnd() {
       let actionResponseDiv = this.$el.querySelector("#action-response-div");
       actionResponseDiv.scrollTop = actionResponseDiv.scrollHeight;
@@ -476,47 +553,46 @@ export default {
 </script>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,200;0,400;0,900;1,200;1,400;1,900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,200;0,400;0,900;1,200;1,400;1,900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&display=swap");
 
 body {
-    background-color: rgb(41, 41, 41);
+  background-color: rgb(41, 41, 41);
 }
 
 #header-div {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 0;
-    margin-bottom: 0;
-    padding: 0;
-    width: 75%;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding: 0;
+  width: 75%;
 }
 
 h1 {
-    font-family: monospace;
-    font-weight: 300;
-    font-style: italic;
-    font-size: 5em;
-    text-align: center;
-    color: whitesmoke;
-    margin: .25em auto .2em;
-    ;
+  font-family: monospace;
+  font-weight: 300;
+  font-style: italic;
+  font-size: 5em;
+  text-align: center;
+  color: whitesmoke;
+  margin: 0.25em auto 0.2em;
 }
 
 .header-span {
-    color: rgb(255, 227, 68);
+  color: rgb(255, 227, 68);
 }
 
 #subtitle {
-    font-family: "Fira Code", monospace;
-    font-weight: 300;
-    font-style: normal;
-    font-size: 1em;
-    text-align: center;
-    color: whitesmoke;
-    margin: 0 auto 2em;
+  font-family: "Fira Code", monospace;
+  font-weight: 300;
+  font-style: normal;
+  font-size: 1em;
+  text-align: center;
+  color: whitesmoke;
+  margin: 0 auto 2em;
 }
 
 #console {
@@ -591,7 +667,7 @@ h1 {
   position: relative;
   background-color: rgb(55, 55, 55);
   margin: 0 1em 2em;
-  padding: 0 1em;
+  padding: 1em 1em 0;
   height: 12em;
   overflow-y: auto;
 }
@@ -615,25 +691,30 @@ h1 {
   line-height: 1.6;
   white-space: pre-line;
   text-align: justify;
+  /* margin: 0; */
 }
 
-.character-text {
-  font-family: "Fira Code", monospace;
+.character-text:hover {
+  transition: color 1.2s ease;
+  /* font-family: "Fira Code", monospace; */
   color: hsl(0, 40.8%, 60%);
 }
 
-.object-text {
-  font-family: "Fira Code", monospace;
+.object-text:hover {
+  transition: color 1.2s ease;
+  /* font-family: "Fira Code", monospace; */
   color: hsl(248, 40.8%, 60%);
 }
 
-.location-text {
-  font-family: "Fira Code", monospace;
+.location-text:hover {
+  transition: color 1.2s ease;
+  /* font-family: "Fira Code", monospace; */
   color: hsl(82, 40.8%, 60%);
 }
 
-.direction-text {
-  font-family: "Fira Code", monospace;
+.direction-text:hover {
+  transition: color 1.2s ease;
+  /* font-family: "Fira Code", monospace; */
   color: hsl(39, 40.8%, 60%);
 }
 
