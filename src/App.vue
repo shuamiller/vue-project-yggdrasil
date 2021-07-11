@@ -39,10 +39,14 @@
       </div>
       <div v-if="gameStarted" id="location-div">
         <div id="Region-location">
-          <p id="Region-text" class="location-text">{{ currentRegionName }}</p>
+          <p id="Region-text" class="location-header-text">
+            {{ currentRegionName }}
+          </p>
         </div>
         <div id="room-location">
-          <p id="room-text" class="location-text">{{ currentRoomName }}</p>
+          <p id="room-text" class="location-header-text">
+            {{ currentRoomName }}
+          </p>
         </div>
       </div>
       <div v-if="gameStarted" id="description-div">
@@ -103,38 +107,22 @@ export default {
       },
       playerInput: "",
       placeholder: "What will you do?",
-      characterQueries: ["portal"],
-      objectQueries: ["doorway", "dark glass"],
-      locationQueries: ["left", "opening", "sand"],
+      characterQueries: ["Man"],
+      objectQueries: ["key", "wooden door", "keyhole"],
+      locationQueries: [],
       directionQueries: ["North", "West", "South", "East"],
       worldTree: {
         rooms: {
           entryPoint: {
-            name: "Entry Points",
-            description: `You find yourself in a room of smooth stone the color of sand. You don't remember how you came to be here. You don't remember who you are. \n\n This room seems to be illuminated without a source. Ahead of you, there is a recessed wall that could be a doorway, but there is no opening. To the left of the recess, a circular portal of dark glass is set in the wall.`,
+            name: "Entry Point",
+            description: `You find yourself in a room of smooth stone the color of sand.\n\nThere is a Man standing in one corner. There is a pedestal in the middle of the room with a key on it. To the North is a wooden door with a keyhole`,
             objects: {
-              doorway: {
-                description: `A smooth surface, the same color and texture as the rest of the room but recessed into the North wall.`,
-                openText: `It doesn't appear to open in any way.`,
-                pushText: `You push against the flat surface, but it doesn't give.`,
-                pullText: `There isn't any way to pull it.`,
-                dialogue: [`It says nothing.`, `It still says nothing...`],
-                removedDialogue: [],
-                isTakeable: false,
+              key: {
+                name: "key",
+                isTakeable: true,
               },
-              darkGlass: {
-                name: `dark glass`,
-                description: `A circular portal of dark glass set into the wall. It is about the size of your head. As you look at it, the glass like surface begins to ripple suddenly. You hear a voice come from the portal. As the voice speaks, the ripple grows.\n\n"Oh, another Convert. It's been some time. I didn't know there would be more of you, but I know not what happens beyond the deep. What is your name, Convert?"`,
-                isTakeable: false,
-                examinationFunction() {
-                  this.checkInput = function() {
-                    this.playerCharacter.name = this.playerInput;
-                    this.messages.push(
-                      `"It's good to meet you, ${this.playerCharacter.name}! I'm Greeter,Dif. Of course you'll have heard of me from before your Conver- Oh! You appear to be missing your PED. How unusual...\n\nSomething's wrong. I'm sorry about the inconvenince. NOrmally, I'd send you to the Council, but as they've dispersed, I'll have to take care of this somehow. Meet me in the Hall,Annals across the city; We can try to figure this out there.\n\nI'm sorry the circumstances are so strange, but nonetheless... Welcome to Yggdrasil."\n\nThe doorway before you to the North splits down the middle, and the two halves recede into the walls creating an opening.`
-                    );
-                  };
-                },
-              },
+              woodenDoor: {},
+              keyhole: {},
             },
             characters: {},
             directions: {
@@ -205,23 +193,25 @@ export default {
       let replacedText = text;
       for (let i = 0; i < this.characterQueries.length; i++) {
         replacedText = replacedText.replace(
-          new RegExp(this.characterQueries[i], "gi"),
+          new RegExp(this.characterQueries[i]),
           (match) => {
             return '<span class="character-text">' + match + `</span>`;
           }
         );
       }
       for (let i = 0; i < this.objectQueries.length; i++) {
+        console.log(this.objectQueries[i]);
         replacedText = replacedText.replace(
-          new RegExp(this.objectQueries[i], "gi"),
+          new RegExp(this.objectQueries[i]),
           (match) => {
+            console.log(match);
             return '<span class="object-text">' + match + `</span>`;
           }
         );
       }
       for (let i = 0; i < this.locationQueries.length; i++) {
         replacedText = replacedText.replace(
-          new RegExp(this.locationQueries[i], "gi"),
+          new RegExp(this.locationQueries[i]),
           (match) => {
             return '<span class="location-text">' + match + `</span>`;
           }
@@ -229,7 +219,7 @@ export default {
       }
       for (let i = 0; i < this.directionQueries.length; i++) {
         replacedText = replacedText.replace(
-          new RegExp(this.directionQueries[i], "gi"),
+          new RegExp(this.directionQueries[i]),
           (match) => {
             return '<span class="direction-text">' + match + `</span>`;
           }
@@ -691,26 +681,47 @@ h1 {
   /* margin: 0; */
 }
 
-.character-text:hover {
+.location-header-text {
+  font-family: "Fira Code", monospace;
+  color: hsl(82, 40.8%, 60%);
+}
+
+.character-text {
   transition: color 1.2s ease;
+  /* font-family: "Fira Code", monospace; */
+}
+
+.character-text:hover {
   /* font-family: "Fira Code", monospace; */
   color: hsl(0, 40.8%, 60%);
 }
 
-.object-text:hover {
+.object-text {
   transition: color 1.2s ease;
+  /* font-family: "Fira Code", monospace; */
+}
+
+.object-text:hover {
   /* font-family: "Fira Code", monospace; */
   color: hsl(248, 40.8%, 60%);
 }
 
-.location-text:hover {
+.location-text {
   transition: color 1.2s ease;
+  /* font-family: "Fira Code", monospace; */
+}
+
+.location-text:hover {
   /* font-family: "Fira Code", monospace; */
   color: hsl(82, 40.8%, 60%);
 }
 
-.direction-text:hover {
+.direction-text {
   transition: color 1.2s ease;
+  /* font-family: "Fira Code", monospace; */
+}
+
+.direction-text:hover {
   /* font-family: "Fira Code", monospace; */
   color: hsl(39, 40.8%, 60%);
 }
