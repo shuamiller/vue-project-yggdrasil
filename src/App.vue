@@ -188,7 +188,7 @@ export default {
                 },
                 removedDialogue: [],
                 isTakeable: false,
-                inventory: [],
+                inventory: {},
                 receivables: {
                   key: {
                     willReceive: false,
@@ -207,7 +207,7 @@ export default {
               },
               woman: {
                 label: "Woman",
-                description: "",
+                description: "A woman",
               },
             },
             directions: {
@@ -629,47 +629,46 @@ export default {
     },
 
     giveAspect(aspect, receiver) {
+      console.log(aspect, receiver);
       if (!this.playerCharacter.inventory[aspect]) {
         this.messages.push(`You don't have ${aspect} with you.`);
       } else {
-        if (
-          !this.currentRoom.characters[receiver].receivables[aspect] ||
-          !(
-            "wontTakeText" in
-            this.currentRoom.characters[receiver].receivables[aspect]
-          )
-        ) {
-          this.messages.push("I don't want that.");
-          return;
+        if (!this.currentRoom.characters[receiver].receivables[aspect]) {
+          this.messages.push(`"I don't want that."`);
         } else if (
-          "wontTakeText" in
-          this.currentRoom.characters[receiver].receivables[aspect]
+          !this.currentRoom.characters[receiver].receivables[aspect].willReceive
         ) {
-          this.messages.push(
-            this.currentRoom.characters[receiver].receivables[aspect]
-              .wontTakeText
-          );
+          if (
+            !(
+              "wontTakeText" in
+              this.currentRoom.characters[receiver].receivables[aspect]
+            )
+          ) {
+            this.messages.push(`"I don't want that."`);
+          } else {
+            this.messages.push(
+              this.currentRoom.characters[receiver].receivables[aspect]
+                .wontTakeText
+            );
+          }
         } else {
-          this.currentRoom.characters[receiver].inventory.push(
-            this.playerCharacter.inventory[aspect]
-          );
+          this.currentRoom.characters[receiver].inventory[
+            aspect
+          ] = this.playerCharacter.inventory[aspect];
+
           this.messages.push(
             this.currentRoom.characters[receiver].receivables[aspect].givenText
           );
-          const aspectIndex = this.playerCharacter.inventory.indexOf(
-            this.playerCharacter.inventory[aspect]
-          );
-          this.playerCharacter.inventory.splice(aspectIndex, 1);
+          console.log(this.currentRoom.characters[receiver].inventory);
+          delete this.playerCharacter.inventory[aspect];
+          console.log(this.playerCharacter.inventory);
           if (
             this.currentRoom.characters[receiver].receivables[aspect]
               .givenFunction
           ) {
-            this.currentRoom.characters[
-              receiver.receivables[aspect].givenFunction(
-                this.worldTree.rooms,
-                this
-              )
-            ];
+            this.currentRoom.characters[receiver].receivables[
+              aspect
+            ].givenFunction(this.worldTree.rooms, this);
           }
         }
       }
