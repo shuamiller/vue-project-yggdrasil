@@ -102,33 +102,133 @@ export default {
       currentRegion: "",
       currentRegionName: "",
       playerCharacter: {
-        name: "",
-        inventory: [],
+        characterName: "",
+        inventory: {},
       },
       playerInput: "",
       placeholder: "What will you do?",
       characterQueries: ["Man"],
-      objectQueries: ["key", "wooden door", "keyhole"],
+      objectQueries: [
+        "key",
+        "wooden door",
+        "keyhole",
+        "wooden box",
+        "metal box",
+        "silver goblet",
+      ],
       locationQueries: [],
       directionQueries: ["North", "West", "South", "East"],
       worldTree: {
         rooms: {
           entryPoint: {
-            name: "Entry Point",
-            description: `You find yourself in a room of smooth stone the color of sand.\n\nThere is a Man standing in one corner. There is a pedestal in the middle of the room with a key on it. To the North is a wooden door with a keyhole`,
+            label: "Entry Point",
+            description: `You find yourself in a room of smooth stone the color of sand.\n\nThere is a Man standing in one corner. There is a pedestal in the middle of the room with a key on it. To the North is a wooden door with a keyhole. Against one of the walls is a wooden box. Against another wall is a metal box.`,
             objects: {
               key: {
-                name: "key",
+                label: "key",
+                description: "A small bronze key",
                 isTakeable: true,
+                examinationFunction() {
+                  this.description = "A small gold key";
+                },
               },
-              woodenDoor: {},
+              woodenDoor: {
+                label: "wooden door",
+                description: "A tall wooden door. It looks quite sturdy.",
+                isTakeable: false,
+              },
               keyhole: {},
+              woodenBox: {
+                label: "wooden box",
+                description: "A box made of wood.",
+                openText: "Once open you see a silver goblet inside.",
+                openFunction() {
+                  delete this.openText;
+                  this.description =
+                    "An open wooden box with a silver goblet inside.";
+                },
+                pullText:
+                  "You move the wooden box and find an old bloodstain on the stone floor.",
+                pullFunction(worldRooms, appData) {
+                  worldRooms.entryPoint.description +=
+                    " There is a bloodstain on the floor where the wooden box originally was.";
+                  appData.currentRoomDescription =
+                    worldRooms.entryPoint.description;
+                },
+              },
+              metalBox: {
+                label: "metal box",
+                description: "a box made of metal",
+                pullText: "You can't pull it, it's too heavy",
+              },
+              silverGoblet: {
+                label: "silver goblet",
+                description: "A goblet made of silver.",
+                isTakeable: true,
+                takeText: "You now own a shiny, silver goblet",
+                takeFunction(worldRooms) {
+                  worldRooms.entryPoint.objects.woodenBox.description =
+                    "An empty wooden box.";
+                },
+              },
             },
-            characters: {},
+            characters: {
+              man: {
+                label: "Man",
+                description: "A simple man, standing in the corner.",
+                dialogue: [
+                  `"Hello"`,
+                  `"Oh, hi again"`,
+                  `"Please stop talking to me now"`,
+                ],
+                pushText: "Ouch! That's not nice.",
+                pushFunction() {
+                  this.description =
+                    "A man on the floor from being unkindly pushed.";
+                },
+                removedDialogue: [],
+                isTakeable: false,
+                inventory: [],
+                receivables: {
+                  key: {
+                    willReceive: false,
+                    wontTakeText: `"You need that more than I do."`,
+                  },
+                  silverGoblet: {
+                    willReceive: true,
+                    givenText: `"Oh my, I thought I had lost this forever. Thank you ever so much."`,
+                    givenFunction(worldRooms) {
+                      worldRooms.entryPoint.characters.man.dialogue = [
+                        `"Again I'm so grateful for you returning this goblet to me. It's a family heirloom after all."`,
+                      ];
+                    },
+                  },
+                },
+              },
+              woman: {
+                label: "Woman",
+                description: "",
+              },
+            },
             directions: {
               north: {
-                directionalAccess: false,
-                room: "VisionalHall",
+                directionalAccess: true,
+                room: "visionalHall",
+              },
+            },
+          },
+          visionalHall: {
+            label: "Visional Hall",
+            description:
+              "A long hallway will glass windows that look over a vast city.",
+            directions: {
+              south: {
+                directionalAccess: true,
+                room: "entryPoint",
+                walkFunction(worldRooms) {
+                  // Action-Initated Functions must be passed this.worldTree.rooms as an argument to interact with objects outside of the current one.
+                  worldRooms.entryPoint.directions.north.directionalAccess = false;
+                },
               },
             },
           },
@@ -141,13 +241,11 @@ export default {
   watch: {
     messages: {
       handler() {
-        console.log(this.messages[this.messages.length - 1]);
         if (
           this.messages[this.messages.length - 1][
             this.messages[this.messages.length - 1].length - 1
           ] != "/"
         ) {
-          console.log("yes");
           this.messages[this.messages.length - 1] += "\n//";
         }
         if (this.messages.length > 50) {
@@ -175,8 +273,10 @@ export default {
     },
     // Changes room location and changes room description
     setRoomLocation(room) {
+      // Used in startGame and enterRoom
+      console.log(room);
       this.currentRoom = room;
-      this.currentRoomName = room.name;
+      this.currentRoomName = this.currentRoom.label;
       this.currentRoomDescription = this.currentRoom.description;
     },
     // Changes string to camelCase
@@ -200,11 +300,9 @@ export default {
         );
       }
       for (let i = 0; i < this.objectQueries.length; i++) {
-        console.log(this.objectQueries[i]);
         replacedText = replacedText.replace(
           new RegExp(this.objectQueries[i]),
           (match) => {
-            console.log(match);
             return '<span class="object-text">' + match + `</span>`;
           }
         );
@@ -308,12 +406,17 @@ export default {
 
     // Changes room to new room
     enterRoom(aspect) {
+      console.log(aspect);
       let newRoom = this.currentRoom.directions[aspect].room;
+      console.log(newRoom);
+      console.log(this.worldTree.rooms[newRoom]);
       this.setRoomLocation(this.worldTree.rooms[newRoom]);
     },
 
     // Allows Player to attempt to walk in a direction
     walkDirection(aspect) {
+      let originalRoom = this.currentRoom;
+      console.log(this.currentRoom);
       if (
         aspect === "none" ||
         this.currentRoom.directions[aspect].directionalAccess === false
@@ -322,8 +425,13 @@ export default {
       } else {
         this.enterRoom(aspect);
       }
-      if (this.currentRoom.walkFunction) {
-        this.currentRoom.walkFunction();
+      console.log(originalRoom);
+      console.log(originalRoom.directions[aspect]);
+      if (originalRoom.directions[aspect].walkFunction) {
+        originalRoom.directions[aspect].walkFunction(
+          this.worldTree.rooms,
+          this
+        );
       }
     },
 
@@ -332,51 +440,66 @@ export default {
       if (this.currentRoom.objects[aspect]) {
         this.messages.push(this.currentRoom.objects[aspect].description);
         if (this.currentRoom.objects[aspect].examinationFunction) {
-          this.currentRoom.objects[aspect].examinationFunction();
+          this.currentRoom.objects[aspect].examinationFunction(
+            this.worldTree.rooms,
+            this
+          );
         }
       } else if (this.currentRoom.characters[aspect]) {
         this.messages.push(this.currentRoom.characters[aspect].description);
         if (this.currentRoom.characters[aspect].examinationFunction) {
-          this.currentRoom.characters[aspect].examinationFunction();
+          this.currentRoom.characters[aspect].examinationFunction(
+            this.worldTree.rooms,
+            this
+          );
         }
       }
     },
 
     // Allows Player to attempt to take an Object or Player
     takeAspect(aspect) {
+      console.log(this.currentRoom.objects[aspect]);
       if (aspect in this.currentRoom.objects) {
         if (this.currentRoom.objects[aspect].isTakeable) {
-          this.playerCharacter.inventory.push(this.currentRoom.objects[aspect]);
-          delete this.currentRoom.objects[aspect];
+          this.playerCharacter.inventory[aspect] = this.currentRoom.objects[
+            aspect
+          ];
           if (this.currentRoom.objects[aspect].takeText) {
             this.messages.push(this.currentRoom.objects[aspect].takeText);
           } else {
             this.messages.push(
-              `You take the ${this.currentRoom.objects[aspect].name}.`
+              `You take the ${this.currentRoom.objects[aspect].label}.`
             );
           }
           if (this.currentRoom.objects[aspect].takeFunction) {
-            this.currentRoom.objects[aspect].takeFunction();
+            this.currentRoom.objects[aspect].takeFunction(
+              this.worldTree.rooms,
+              this
+            );
           }
+          delete this.currentRoom.objects[aspect];
         } else {
-          this.messages.push(``);
+          this.messages.push(`You can't take that with you.`);
         }
       } else if (aspect in this.currentRoom.characters) {
         if (this.currentRoom.characters[aspect].isTakeable) {
           this.playerCharacter.inventory.push(
             this.currentRoom.characters[aspect]
           );
-          delete this.currentRoom.characters[aspect];
           if (this.currentRoom.characters[aspect].takeText) {
             this.messages.push(this.currentRoom.characters[aspect].takeText);
           } else {
             this.messages.push(
-              `You take the ${this.currentRoom.characters[aspect].name}.`
+              `You take the ${this.currentRoom.characters[aspect].label}.`
             );
           }
           if (this.currentRoom.characters[aspect].takeFunction) {
-            this.currentRoom.characters[aspect].takeFunction();
+            this.currentRoom.characters[aspect].takeFunction(
+              this.worldTree.rooms,
+              this
+            );
           }
+          delete this.currentRoom.characters[aspect];
         } else {
           this.messages.push(`You can't take that with you.`);
         }
@@ -385,48 +508,94 @@ export default {
 
     openAspect(aspect) {
       if (aspect in this.currentRoom.objects) {
+        if (!("openText" in this.currentRoom.objects[aspect])) {
+          this.messages.push("You can't open that.");
+          return;
+        }
         this.messages.push(this.currentRoom.objects[aspect].openText);
         if (this.currentRoom.objects[aspect].openFunction) {
-          this.currentRoom.objects[aspect].openFunction();
+          this.currentRoom.objects[aspect].openFunction(
+            this.worldTree.rooms,
+            this
+          );
         }
       } else if (aspect in this.currentRoom.characters) {
+        if (!("openText" in this.currentRoom.characters[aspect])) {
+          this.messages.push("You can't open that.");
+          return;
+        }
         this.messages.push(this.currentRoom.characters[aspect].openText);
         if (this.currentRoom.characters[aspect].openFunction) {
-          this.currentRoom.characters[aspect].openFunction();
+          this.currentRoom.characters[aspect].openFunction(
+            this.worldTree.rooms,
+            this
+          );
         }
       }
     },
 
     pushAspect(aspect) {
       if (aspect in this.currentRoom.objects) {
+        if (!("pushText" in this.currentRoom.objects[aspect])) {
+          this.messages.push("You can't push that.");
+          return;
+        }
         this.messages.push(this.currentRoom.objects[aspect].pushText);
         if (this.currentRoom.objects[aspect].pushFunction) {
-          this.currentRoom.objects[aspect].pushFunction();
+          this.currentRoom.objects[aspect].pushFunction(
+            this.worldTree.rooms,
+            this
+          );
         }
       } else if (aspect in this.currentRoom.characters) {
+        if (!("pushText" in this.currentRoom.characters[aspect])) {
+          this.messages.push("You can't push them.");
+          return;
+        }
         this.messages.push(this.currentRoom.characters[aspect].pushText);
         if (this.currentRoom.characters[aspect].pushFunction) {
-          this.currentRoom.characters[aspect].pushFunction();
+          this.currentRoom.characters[aspect].pushFunction(
+            this.worldTree.rooms,
+            this
+          );
         }
       }
     },
 
     pullAspect(aspect) {
       if (aspect in this.currentRoom.objects) {
+        if (!("pullText" in this.currentRoom.objects[aspect])) {
+          this.messages.push("You can't pull that.");
+          return;
+        }
         this.messages.push(this.currentRoom.objects[aspect].pullText);
         if (this.currentRoom.objects[aspect].pullFunction) {
-          this.currentRoom.objects[aspect].pullFunction();
+          this.currentRoom.objects[aspect].pullFunction(
+            this.worldTree.rooms,
+            this
+          );
         }
       } else if (aspect in this.currentRoom.characters) {
+        if (!("pushText" in this.currentRoom.characters[aspect])) {
+          this.messages.push("You can't push them.");
+          return;
+        }
         this.messages.push(this.currentRoom.characters[aspect].pullText);
         if (this.currentRoom.characters[aspect].pullFunction) {
-          this.currentRoom.characters[aspect].pullFunction();
+          this.currentRoom.characters[aspect].pullFunction(
+            this.worldTree.rooms,
+            this
+          );
         }
       }
     },
 
     talkToAspect(aspect) {
       if (aspect in this.currentRoom.objects) {
+        if (!("dialogue" in this.currentRoom.objects[aspect])) {
+          this.messages.push("It doesn't have anything to say.");
+          return;
+        }
         if (this.currentRoom.objects[aspect].dialogue.length > 1) {
           this.messages.push(this.currentRoom.objects[aspect].dialogue[0]);
           this.currentRoom.objects[aspect].removedDialogue.push(
@@ -440,6 +609,10 @@ export default {
           this.currentRoom.objects[aspect].talkFunction();
         }
       } else if (aspect in this.currentRoom.characters) {
+        if (!("dialogue" in this.currentRoom.characters[aspect])) {
+          this.messages.push("They don't have anything to say.");
+          return;
+        }
         if (this.currentRoom.characters[aspect].dialogue.length > 1) {
           this.messages.push(this.currentRoom.characters[aspect].dialogue[0]);
           this.currentRoom.characters[aspect].removedDialogue.push(
@@ -455,20 +628,49 @@ export default {
       }
     },
 
-    giveFunction(aspect, receiver) {
+    giveAspect(aspect, receiver) {
       if (!this.playerCharacter.inventory[aspect]) {
         this.messages.push(`You don't have ${aspect} with you.`);
       } else {
-        if (!this.currentRoom[receiver].receivable[aspect]) {
-          this.messages.push(this.currentRoom[receiver].wontTakeText);
+        if (
+          !this.currentRoom.characters[receiver].receivables[aspect] ||
+          !(
+            "wontTakeText" in
+            this.currentRoom.characters[receiver].receivables[aspect]
+          )
+        ) {
+          this.messages.push("I don't want that.");
+          return;
+        } else if (
+          "wontTakeText" in
+          this.currentRoom.characters[receiver].receivables[aspect]
+        ) {
+          this.messages.push(
+            this.currentRoom.characters[receiver].receivables[aspect]
+              .wontTakeText
+          );
         } else {
-          this.currentRoom[receiver].inventory.push(
+          this.currentRoom.characters[receiver].inventory.push(
             this.playerCharacter.inventory[aspect]
+          );
+          this.messages.push(
+            this.currentRoom.characters[receiver].receivables[aspect].givenText
           );
           const aspectIndex = this.playerCharacter.inventory.indexOf(
             this.playerCharacter.inventory[aspect]
           );
           this.playerCharacter.inventory.splice(aspectIndex, 1);
+          if (
+            this.currentRoom.characters[receiver].receivables[aspect]
+              .givenFunction
+          ) {
+            this.currentRoom.characters[
+              receiver.receivables[aspect].givenFunction(
+                this.worldTree.rooms,
+                this
+              )
+            ];
+          }
         }
       }
     },
@@ -482,7 +684,7 @@ export default {
     checkInventory() {
       let inventoryList = `You are holding:`;
       for (const item in this.playerCharacter.inventory) {
-        inventoryList += `\n*${item}`;
+        inventoryList += `\n- ${this.playerCharacter.inventory[item].label}`;
       }
       this.messages.push(inventoryList);
     },

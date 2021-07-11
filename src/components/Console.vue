@@ -1,3 +1,4 @@
+/*
 <template>
   <div id="console">
     <div id="game-info">
@@ -113,7 +114,7 @@ export default {
                 description: `A circular portal of dark glass set into the wall. It is about the size of your head. As you look at it, the glass like surface begins to ripple suddenly. You hear a voice come from the portal. As the voice speaks, the ripple grows.\n\n"Oh, another Convert. It's been some time. I didn't know there would be more of you, but I know not what happens beyond the deep. What is your name, Convert?"`,
                 isTakeable: false,
                 examinationFunction() {
-                  this.checkInput = function () {
+                  this.checkInput = function() {
                     this.playerCharacter.name = this.playerInput;
                     this.messages.push(
                       `"It's good to meet you, ${this.playerCharacter.name}! I'm Greeter,Dif. Of course you'll have heard of me from before your Conver- Oh! You appear to be missing your PED. How unusual...\n\nSomething's wrong. I'm sorry about the inconvenince. NOrmally, I'd send you to the Council, but as they've dispersed, I'll have to take care of this somehow. Meet me in the Hall,Annals across the city; We can try to figure this out there.\n\nI'm sorry the circumstances are so strange, but nonetheless... Welcome to Yggdrasil."\n\nThe doorway before you to the North splits down the middle, and the two halves recede into the walls creating an opening.`
@@ -172,7 +173,7 @@ export default {
     // Changes string to camelCase
     makeCamelCase(str) {
       return str
-        .replace(/(?:^\w|[A-Z]|\b\w)/g, function (word, index) {
+        .replace(/(?:^\w|[A-Z]|\b\w)/g, function(word, index) {
           return index == 0 ? word.toLowerCase() : word.toUpperCase();
         })
         .replace(/\s+/g, "");
@@ -669,3 +670,4 @@ export default {
   border-style: none;
 }
 </style>
+*/
