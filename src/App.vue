@@ -56,7 +56,7 @@
           class="game-text"
         ></p>
       </div>
-      <div v-if="gameStarted" id="action-response-div">
+      <div v-if="gameStarted" id="action-response-div" ref="actionResponseDiv">
         <p
           v-html="highlightText(message)"
           v-for="(message, index) in messages"
@@ -86,6 +86,7 @@
           value="submit"
           @click="checkInput"
         />
+        <button @click="scrollToEnd()">Scroll to Bottom</button>
       </div>
     </div>
   </div>
@@ -236,10 +237,25 @@ export default {
                 label: "Man",
                 description: "A simple man, standing in the corner.",
                 dialogue: [
-                  `"Hello"`,
+                  `"Hello, what's your name?"`,
                   `"Oh, hi again"`,
                   `"Please stop talking to me now"`,
                 ],
+                talkFunction(worldRooms, appData) {
+                  appData.placeholder = "What is your name?";
+                  appData.checkInput = function() {
+                    appData.playerCharacter.name = appData.playerInput;
+                    appData.messages.push(
+                      `"Oh, hello ${appData.playerCharacter.name}"`
+                    );
+                    appData.playerInput = "";
+                    appData.placeholder = "What will you do?";
+                    appData.checkInput = function() {
+                      appData.determineAction();
+                      appData.playerInput = "";
+                    };
+                  };
+                },
                 pushText: "Ouch! That's not nice.",
                 pushFunction() {
                   this.description =
@@ -327,8 +343,7 @@ export default {
         if (this.messages.length > 50) {
           this.messages.shift();
         }
-        let actionResponseDiv = document.querySelector("#action-response-div");
-        actionResponseDiv.scrollTop = actionResponseDiv.scrollHeight;
+        // this.scrollToEnd();
       },
       deep: true,
     },
@@ -682,7 +697,10 @@ export default {
           this.messages.push(this.currentRoom.objects[aspect].dialogue[0]);
         }
         if (this.currentRoom.objects[aspect].talkFunction) {
-          this.currentRoom.objects[aspect].talkFunction();
+          this.currentRoom.objects[aspect].talkFunction(
+            this.worldTree.rooms,
+            this
+          );
         }
       } else if (aspect in this.currentRoom.characters) {
         if (!("dialogue" in this.currentRoom.characters[aspect])) {
@@ -699,7 +717,10 @@ export default {
           this.messages.push(this.currentRoom.characters[aspect].dialogue[0]);
         }
         if (this.currentRoom.characters[aspect].talkFunction) {
-          this.currentRoom.characters[aspect].talkFunction();
+          this.currentRoom.characters[aspect].talkFunction(
+            this.worldTree.rooms,
+            this
+          );
         }
       }
     },
@@ -1232,7 +1253,7 @@ export default {
     },
 
     scrollToEnd() {
-      let actionResponseDiv = this.$el.querySelector("#action-response-div");
+      let actionResponseDiv = this.$refs.actionResponseDiv;
       actionResponseDiv.scrollTop = actionResponseDiv.scrollHeight;
     },
   },
