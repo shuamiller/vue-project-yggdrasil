@@ -675,9 +675,474 @@ export default {
     },
 
     useAspect(firstAspect, secondAspect) {
-      // Refactor code from script.js
-      firstAspect;
-      secondAspect;
+      if (
+        // If the first object or character is not in the player's inventory or in the room
+        !(firstAspect in this.playerCharacter.inventory) &&
+        !(firstAspect in this.currentRoom.objects) &&
+        !(firstAspect in this.currentRoom.characters)
+      ) {
+        this.messages.push(`You don't have ${firstAspect} with you.`);
+      } else if (
+        // If the second object or character is not in the player's inventory or in the room
+        !(secondAspect in this.playerCharacter.inventory) &&
+        !(secondAspect in this.currentRoom.objects) &&
+        !(secondAspect in this.currentRoom.characters)
+      ) {
+        this.messages.push(`You don't have access to ${secondAspect}.`);
+      } else if (
+        // If both objects or characters are in the player's inventory
+        firstAspect in this.playerCharacter.inventory &&
+        secondAspect in this.playerCharacter.inventory
+      ) {
+        if (
+          // If the objects or characters in the player's inventory can be used with each other
+          secondAspect in
+            this.playerCharacter.inventory[firstAspect].canUseWith &&
+          firstAspect in this.playerCharacter.inventory[secondAspect].canUseWith
+        ) {
+          if (
+            // If there is text for using the objects attached to the first object, push it to messages
+            this.playerCharacter.inventory[firstAspect].canUseWith[secondAspect]
+              .useWithText
+          ) {
+            this.messages.push(
+              this.playerCharacter.inventory[firstAspect].canUseWith[
+                secondAspect
+              ].useWithText
+            );
+          }
+          if (
+            // If there is text for using the objects attached to the second object, push it to messages
+            this.playerCharacter.inventory[secondAspect].canUseWith[firstAspect]
+              .useWithText
+          ) {
+            this.messages.push(
+              this.playerCharacter.inventory[secondAspect].canUseWith[
+                firstAspect
+              ].useWithText
+            );
+          }
+          if (
+            // If the first object or character has a function, trigger it
+            this.playerCharacter.inventory[firstAspect].canUseWith[secondAspect]
+              .useWithFunction
+          ) {
+            this.playerCharacter.inventory[firstAspect].canUseWith[
+              secondAspect
+            ].useWithFunction(this.worldTree.rooms, this);
+          }
+          if (
+            // If the second object or character has a function, trigger it
+            this.playerCharacter.inventory[secondAspect].canUseWith[firstAspect]
+              .useWithFunction
+          ) {
+            this.playerCharacter.inventory[secondAspect].canUseWith[
+              firstAspect
+            ].useWithFunction(this.worldTree.rooms);
+          }
+        }
+      } else if (
+        // If the first object or character is in the player's inventory and the second object is in the room
+        firstAspect in this.playerCharacter.inventory &&
+        secondAspect in this.currentRoom.objects
+      ) {
+        if (
+          // If the object or character in the player's inventory can be used with the object in the room
+          secondAspect in
+            this.playerCharacter.inventory[firstAspect].canUseWith &&
+          firstAspect in this.currentRoom.objects[secondAspect].canUseWith
+        ) {
+          if (
+            // If there is text for using the objects attached to the first object, push it to messages
+            this.playerCharacter.inventory[firstAspect].canUseWith[secondAspect]
+              .useWithText
+          ) {
+            this.messages.push(
+              this.playerCharacter.inventory[firstAspect].canUseWith[
+                secondAspect
+              ].useWithText
+            );
+          }
+          if (
+            // If there is text for using the objects attached to the second object, push it to messages
+            this.currentRoom.objects[secondAspect].canUseWith[firstAspect]
+              .useWithText
+          ) {
+            this.messages.push(
+              this.currentRoom.objects[secondAspect].canUseWith[firstAspect]
+                .useWithText
+            );
+          }
+          if (
+            // If the first object or character has a function, trigger it
+            this.playerCharacter.inventory[firstAspect].canUseWith[secondAspect]
+              .useWithFunction
+          ) {
+            this.playerCharacter.inventory[firstAspect].canUseWith[
+              secondAspect
+            ].useWithFunction(this.worldTree.rooms, this);
+          }
+          if (
+            // If the second object has a function, trigger it
+            this.currentRoom.objects[secondAspect].canUseWith[firstAspect]
+              .useWithFunction
+          ) {
+            this.currentRoom.objects[secondAspect].canUseWith[
+              firstAspect
+            ].useWithFunction(this.worldTree.rooms);
+          }
+        }
+      } else if (
+        // If the first object or character is in the player's inventory and the second character is in the room
+        firstAspect in this.playerCharacter.inventory &&
+        secondAspect in this.currentRoom.characters
+      ) {
+        if (
+          // If the object or character in the player's inventory can be used with the character in the room
+          secondAspect in
+            this.playerCharacter.inventory[firstAspect].canUseWith &&
+          firstAspect in this.currentRoom.characters[secondAspect].canUseWith
+        ) {
+          if (
+            // If there is text for using the objects attached to the first object, push it to messages
+            this.playerCharacter.inventory[firstAspect].canUseWith[secondAspect]
+              .useWithText
+          ) {
+            this.messages.push(
+              this.playerCharacter.inventory[firstAspect].canUseWith[
+                secondAspect
+              ].useWithText
+            );
+          }
+          if (
+            // If there is text for using the objects attached to the second character, push it to messages
+            this.currentRoom.characters[secondAspect].canUseWith[firstAspect]
+              .useWithText
+          ) {
+            this.messages.push(
+              this.currentRoom.characters[secondAspect].canUseWith[firstAspect]
+                .useWithText
+            );
+          }
+          if (
+            // If the first object or character has a function, trigger it
+            this.playerCharacter.inventory[firstAspect].canUseWith[secondAspect]
+              .useWithFunction
+          ) {
+            this.playerCharacter.inventory[firstAspect].canUseWith[
+              secondAspect
+            ].useWithFunction(this.worldTree.rooms, this);
+          }
+          if (
+            // If the second object has a function, trigger it
+            this.currentRoom.characters[secondAspect].canUseWith[firstAspect]
+              .useWithFunction
+          ) {
+            this.currentRoom.characters[secondAspect].canUseWith[
+              firstAspect
+            ].useWithFunction(this.worldTree.rooms);
+          }
+        }
+      } else if (
+        // If the first object is in the room and the second object or character is in the player's inventory
+        firstAspect in this.currentRoom.objects &&
+        secondAspect in this.playerCharacter.inventory
+      ) {
+        if (
+          // If the object in the room can be used with the object or character in the player's inventory
+          secondAspect in this.currentRoom.objects[firstAspect].canUseWith &&
+          firstAspect in this.playerCharacter.inventory[secondAspect].canUseWith
+        ) {
+          if (
+            // If there is text for using the objects attached to the first object, push it to messages
+            this.currentRoom.objects[firstAspect].canUseWith[secondAspect]
+              .useWithText
+          ) {
+            this.messages.push(
+              this.currentRoom.objects[firstAspect].canUseWith[secondAspect]
+                .useWithText
+            );
+          }
+          if (
+            // If there is text for using the objects attached to the second object, push it to messages
+            this.playerCharacter.inventory[secondAspect].canUseWith[firstAspect]
+              .useWithText
+          ) {
+            this.messages.push(
+              this.playerCharacter.inventory[secondAspect].canUseWith[
+                firstAspect
+              ].useWithText
+            );
+          }
+          if (
+            // If the first object has a function, trigger it
+            this.currentRoom.objects[firstAspect].canUseWith[secondAspect]
+              .useWithFunction
+          ) {
+            this.currentRoom.objects[firstAspect].canUseWith[
+              secondAspect
+            ].useWithFunction(this.worldTree.rooms, this);
+          }
+          if (
+            // If the second object or character has a function, trigger it
+            this.playerCharacter.inventory[secondAspect].canUseWith[firstAspect]
+              .useWithFunction
+          ) {
+            this.playerCharacter.inventory[secondAspect].canUseWith[
+              firstAspect
+            ].useWithFunction(this.worldTree.rooms);
+          }
+        }
+      } else if (
+        // If both objects are in the room
+        firstAspect in this.currentRoom.objects &&
+        secondAspect in this.currentRoom.objects
+      ) {
+        if (
+          // If the objects in the room can be used with each other
+          secondAspect in this.currentRoom.objects[firstAspect].canUseWith &&
+          firstAspect in this.currentRoom.objects[secondAspect].canUseWith
+        ) {
+          if (
+            // If there is text for using the objects attached to the first object, push it to messages
+            this.currentRoom.objects[firstAspect].canUseWith[secondAspect]
+              .useWithText
+          ) {
+            this.messages.push(
+              this.currentRoom.objects[firstAspect].canUseWith[secondAspect]
+                .useWithText
+            );
+          }
+          if (
+            // If there is text for using the objects attached to the second object, push it to messages
+            this.currentRoom.objects[secondAspect].canUseWith[firstAspect]
+              .useWithText
+          ) {
+            this.messages.push(
+              this.currentRoom.objects[secondAspect].canUseWith[firstAspect]
+                .useWithText
+            );
+          }
+          if (
+            // If the first object has a function, trigger it
+            this.currentRoom.objects[firstAspect].canUseWith[secondAspect]
+              .useWithFunction
+          ) {
+            this.currentRoom.objects[firstAspect].canUseWith[
+              secondAspect
+            ].useWithFunction(this.worldTree.rooms, this);
+          }
+          if (
+            // If the second object or character has a function, trigger it
+            this.currentRoom.objects[secondAspect].canUseWith[firstAspect]
+              .useWithFunction
+          ) {
+            this.currentRoom.objects[secondAspect].canUseWith[
+              firstAspect
+            ].useWithFunction(this.worldTree.rooms);
+          }
+        }
+      } else if (
+        // If the object is in the room and the character is in the room
+        firstAspect in this.currentRoom.objects &&
+        secondAspect in this.currentRoom.characters
+      ) {
+        if (
+          // If the object and character in the room can be used with each other
+          secondAspect in this.currentRoom.objects[firstAspect].canUseWith &&
+          firstAspect in this.currentRoom.characters[secondAspect].canUseWith
+        ) {
+          if (
+            // If there is text for using the objects attached to the first object, push it to messages
+            this.currentRoom.objects[firstAspect].canUseWith[secondAspect]
+              .useWithText
+          ) {
+            this.messages.push(
+              this.currentRoom.objects[firstAspect].canUseWith[secondAspect]
+                .useWithText
+            );
+          }
+          if (
+            // If there is text for using the objects attached to the second object, push it to messages
+            this.currentRoom.characters[secondAspect].canUseWith[firstAspect]
+              .useWithText
+          ) {
+            this.messages.push(
+              this.currentRoom.characters[secondAspect].canUseWith[firstAspect]
+                .useWithText
+            );
+          }
+          if (
+            // If the object has a function, trigger it
+            this.currentRoom.objects[firstAspect].canUseWith[secondAspect]
+              .useWithFunction
+          ) {
+            this.currentRoom.objects[firstAspect].canUseWith[
+              secondAspect
+            ].useWithFunction(this.worldTree.rooms, this);
+          }
+          if (
+            // If the character has a function, trigger it
+            this.currentRoom.characters[secondAspect].canUseWith[firstAspect]
+              .useWithFunction
+          ) {
+            this.currentRoom.characters[secondAspect].canUseWith[
+              firstAspect
+            ].useWithFunction(this.worldTree.rooms);
+          }
+        }
+      } else if (
+        // If the first character is in the room and the second object or character is in the player's inventory
+        firstAspect in this.currentRoom.characters &&
+        secondAspect in this.playerCharacter.inventory
+      ) {
+        if (
+          // If the character in the room can be used with the object or character in the player's inventory
+          secondAspect in this.currentRoom.characters[firstAspect].canUseWith &&
+          firstAspect in this.playerCharacter.inventory[secondAspect].canUseWith
+        ) {
+          if (
+            // If there is text for using the objects attached to the first object, push it to messages
+            this.currentRoom.characters[firstAspect].canUseWith[secondAspect]
+              .useWithText
+          ) {
+            this.messages.push(
+              this.currentRoom.characters[firstAspect].canUseWith[secondAspect]
+                .useWithText
+            );
+          }
+          if (
+            // If there is text for using the objects attached to the second object, push it to messages
+            this.playerCharacter.inventory[secondAspect].canUseWith[firstAspect]
+              .useWithText
+          ) {
+            this.messages.push(
+              this.playerCharacter.inventory[secondAspect].canUseWith[
+                firstAspect
+              ].useWithText
+            );
+          }
+          if (
+            // If the first character has a function, trigger it
+            this.currentRoom.characters[firstAspect].canUseWith[secondAspect]
+              .useWithFunction
+          ) {
+            this.currentRoom.characters[firstAspect].canUseWith[
+              secondAspect
+            ].useWithFunction(this.worldTree.rooms, this);
+          }
+          if (
+            // If the second object or character has a function, trigger it
+            this.playerCharacter.inventory[secondAspect].canUseWith[firstAspect]
+              .useWithFunction
+          ) {
+            this.playerCharacter.inventory[secondAspect].canUseWith[
+              firstAspect
+            ].useWithFunction(this.worldTree.rooms);
+          }
+        }
+      } else if (
+        // If the character is in the room and teh object is in the room
+        firstAspect in this.currentRoom.characters &&
+        secondAspect in this.currentRoom.objects
+      ) {
+        if (
+          // If the character in the room can be used with the object in the room
+          secondAspect in this.currentRoom.characters[firstAspect].canUseWith &&
+          firstAspect in this.currentRoom.objects[secondAspect].canUseWith
+        ) {
+          if (
+            // If there is text for using the objects attached to the first object, push it to messages
+            this.currentRoom.characters[firstAspect].canUseWith[secondAspect]
+              .useWithText
+          ) {
+            this.messages.push(
+              this.currentRoom.characters[firstAspect].canUseWith[secondAspect]
+                .useWithText
+            );
+          }
+          if (
+            // If there is text for using the objects attached to the second object, push it to messages
+            this.currentRoom.objects[secondAspect].canUseWith[firstAspect]
+              .useWithText
+          ) {
+            this.messages.push(
+              this.currentRoom.objects[secondAspect].canUseWith[firstAspect]
+                .useWithText
+            );
+          }
+          if (
+            // If the first character has a function, trigger it
+            this.currentRoom.characters[firstAspect].canUseWith[secondAspect]
+              .useWithFunction
+          ) {
+            this.currentRoom.characters[firstAspect].canUseWith[
+              secondAspect
+            ].useWithFunction(this.worldTree.rooms, this);
+          }
+          if (
+            // If the second object or character has a function, trigger it
+            this.playerCharacter.objects[secondAspect].canUseWith[firstAspect]
+              .useWithFunction
+          ) {
+            this.playerCharacter.objects[secondAspect].canUseWith[
+              firstAspect
+            ].useWithFunction(this.worldTree.rooms);
+          }
+        }
+      } else if (
+        // If both characters are in the room
+        firstAspect in this.currentRoom.characters &&
+        secondAspect in this.currentRoom.characters
+      ) {
+        if (
+          // If the characters in the room can be used with each other
+          secondAspect in this.currentRoom.characters[firstAspect].canUseWith &&
+          firstAspect in this.currentRoom.characters[secondAspect].canUseWith
+        ) {
+          if (
+            // If there is text for using the characters attached to the first character, push it to messages
+            this.currentRoom.characters[firstAspect].canUseWith[secondAspect]
+              .useWithText
+          ) {
+            this.messages.push(
+              this.currentRoom.characters[firstAspect].canUseWith[secondAspect]
+                .useWithText
+            );
+          }
+          if (
+            // If there is text for using the characters attached to the second character, push it to messages
+            this.currentRoom.characters[secondAspect].canUseWith[firstAspect]
+              .useWithText
+          ) {
+            this.messages.push(
+              this.currentRoom.characters[secondAspect].canUseWith[firstAspect]
+                .useWithText
+            );
+          }
+          if (
+            // If the first character has a function, trigger it
+            this.currentRoom.characters[firstAspect].canUseWith[secondAspect]
+              .useWithFunction
+          ) {
+            this.currentRoom.characters[firstAspect].canUseWith[
+              secondAspect
+            ].useWithFunction(this.worldTree.rooms, this);
+          }
+          if (
+            // If the second object or character has a function, trigger it
+            this.playerCharacter.characters[secondAspect].canUseWith[
+              firstAspect
+            ].useWithFunction
+          ) {
+            this.playerCharacter.characters[secondAspect].canUseWith[
+              firstAspect
+            ].useWithFunction(this.worldTree.rooms);
+          }
+        }
+      } else {
+        this.messages.push(`You can't use those with each other.`);
+      }
     },
 
     checkInventory() {
