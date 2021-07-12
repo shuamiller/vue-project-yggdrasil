@@ -1182,9 +1182,9 @@ export default {
         let receiver = this.getReceiver(inputArray);
         this.giveAspect(aspect, receiver);
       } else if (inputArray[0] === "use") {
-        let aspect1 = this.getAspect1(inputArray);
-        let aspect2 = this.getAspect2(inputArray);
-        this.useAspect(aspect1, aspect2);
+        let firstAspect = this.getFirstAspect(inputArray);
+        let secondAspect = this.getSecondAspect(inputArray);
+        this.useAspect(firstAspect, secondAspect);
       } else if (inputArray[0] === "?") {
         if (inputArray.length > 1) {
           aspect = this.getGeneralAspect(inputArray);
